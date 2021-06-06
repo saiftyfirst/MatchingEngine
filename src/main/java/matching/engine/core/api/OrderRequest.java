@@ -1,10 +1,12 @@
-package matching.engine.core.common;
+package matching.engine.core.api;
 
 import lombok.Builder;
 import lombok.Getter;
+import matching.engine.core.common.IOrder;
+import matching.engine.core.common.OrderSide;
 
 @Builder
-public class Order implements IOrder {
+public class OrderRequest implements IOrder {
 
     @Getter
     private double price;
@@ -26,5 +28,8 @@ public class Order implements IOrder {
 
     @Getter
     private long timestamp;
+
+    @Getter
+    private OrderRequestType orderRequestType;
 
 }

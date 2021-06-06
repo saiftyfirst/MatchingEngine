@@ -2,9 +2,9 @@ package matching.engine.core.common;
 
 public interface IOrder {
 
-    long getPrice();
+    double getPrice();
 
-    long getSize();
+    double getSize();
 
     OrderSide getSide();
 
@@ -12,7 +12,7 @@ public interface IOrder {
 
     long getUserId();
 
-    long getFilled();
+    double getFilled();
 
     long getTimestamp();
 
