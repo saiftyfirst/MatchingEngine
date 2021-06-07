@@ -1,7 +1,7 @@
 package matching.engine.core.orderbook;
 
 import matching.engine.core.api.OrderRequest;
-import matching.engine.core.common.IOrder;
+import matching.engine.core.common.order.IOrder;
 
 import java.util.Collection;
 

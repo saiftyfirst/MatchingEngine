@@ -1,4 +1,4 @@
-package matching.engine.core.common;
+package matching.engine.core.common.order;
 
 public enum OrderSide {
 

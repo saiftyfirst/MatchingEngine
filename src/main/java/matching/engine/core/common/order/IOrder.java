@@ -1,4 +1,4 @@
-package matching.engine.core.common;
+package matching.engine.core.common.order;
 
 public interface IOrder {
 
@@ -10,7 +10,7 @@ public interface IOrder {
 
     long getOrderId();
 
-    long getUserId();
+    long getUid();
 
     double getFilled();
 

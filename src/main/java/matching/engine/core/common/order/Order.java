@@ -1,4 +1,4 @@
-package matching.engine.core.common;
+package matching.engine.core.common.order;
 
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ public class Order implements IOrder {
 
     private OrderSide side;
 
-    private Long userId;
+    private Long uid;
 
     private long orderId;
 

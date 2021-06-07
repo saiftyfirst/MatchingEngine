@@ -1,16 +1,22 @@
 package matching.engine.core.orderbook;
 
-import lombok.Builder;
 import matching.engine.core.api.OrderRequest;
-import matching.engine.core.common.IOrder;
+import matching.engine.core.common.order.IOrder;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.NavigableMap;
 
-@Builder
 public class OrderBook implements IOrderBook {
 
     private final long instrument;
+    private NavigableMap<Double, OrderBookEntity> bids;
+    private NavigableMap<Double, OrderBookEntity> asks;
+
+    public OrderBook(long instrument) {
+        this.instrument = instrument;
+    }
+
 
     @Override
     public void newOrder(OrderRequest orderRequest) {

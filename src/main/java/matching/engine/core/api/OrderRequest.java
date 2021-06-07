@@ -2,9 +2,9 @@ package matching.engine.core.api;
 
 import lombok.Builder;
 import lombok.Getter;
-import matching.engine.core.common.IOrder;
-import matching.engine.core.common.OrderSide;
-import matching.engine.core.common.OrderSpec;
+import matching.engine.core.common.order.IOrder;
+import matching.engine.core.common.order.OrderSide;
+import matching.engine.core.common.order.OrderSpec;
 
 @Builder
 public class OrderRequest implements IOrder {
@@ -19,7 +19,7 @@ public class OrderRequest implements IOrder {
     final private OrderSide side;
 
     @Getter
-    final private Long userId;
+    final private Long uid;
 
     @Getter
     final private long orderId;
