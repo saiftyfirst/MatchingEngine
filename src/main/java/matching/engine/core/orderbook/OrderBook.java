@@ -1,42 +1,76 @@
 package matching.engine.core.orderbook;
 
+import lombok.Builder;
 import matching.engine.core.api.OrderRequest;
-import matching.engine.core.api.OrderResponse;
 import matching.engine.core.common.IOrder;
 
 import java.util.Collection;
+import java.util.Collections;
 
+@Builder
 public class OrderBook implements IOrderBook {
 
+    private final long instrument;
 
     @Override
-    public OrderResponse newOrder(OrderRequest orderRequest) {
-        return null;
+    public void newOrder(OrderRequest orderRequest) {
+        /* Possible Events:
+         * case LIMIT:
+         *  - reject due to bad instrument
+         *  - reject due to duplicate order id
+         *  - full fill and return one or more trades
+         *  - partial fill and return one or more trades
+
+         * case MARKET:
+         *  - reject due to bad instrument
+         *  - reject due to duplicate order id
+         *  - full fill and return one or more trades
+
+         * case FOK:
+         *  - reject due to bad instrument
+         *  - reject due to duplicate order id
+         *  - full fill and return one or more trades
+         *  - partial fill and return one or more trades, reject remaining size
+         * */
     }
 
     @Override
-    public OrderResponse amendOrder(OrderRequest orderRequest) {
-        return null;
+    public void amendOrder(OrderRequest orderRequest) {
+        /*  Possible Events:
+         *  - reject due to bad instrument
+         *  - reject due unavailable orderId / already filled ?
+         *  - amend success event along with zero or more trades
+        */
+
     }
 
     @Override
-    public OrderResponse cancelOrder(OrderRequest orderRequest) {
-        return null;
+    public void cancelOrder(OrderRequest orderRequest) {
+        /*  Possible Events:
+         *  - reject due to bad instrument
+         *  - reject due unavailable orderId / already filled ?
+         *  - successful cancel
+         */
     }
 
     @Override
     public Collection<IOrder> getBids() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
     public Collection<IOrder> getAsks() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
-    public long getSymbol() {
-        return 0;
+    public long getInstrument() {
+        return this.instrument;
+    }
+
+    @Override
+    public Collection<IOrder> getUserOrders(long userId) {
+        return null;
     }
 
 }
