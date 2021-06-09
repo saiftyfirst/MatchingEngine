@@ -1,7 +1,10 @@
 package matching.engine.core.orderbook.events;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import matching.engine.core.api.OrderRequest;
+import matching.engine.core.common.order.Order;
 import matching.engine.core.common.trade.Trade;
 
 import java.util.Collection;
@@ -9,18 +12,21 @@ import java.util.Collection;
 public interface OrderBookEvent {
 
     @Data
-    class Match {
+    @AllArgsConstructor
+    class Match implements OrderBookEvent {
         Collection<Trade> trades;
     }
 
     @Data
-    class MatchWithReject {
+    @AllArgsConstructor
+    class MatchWithReject implements OrderBookEvent {
         Collection<Trade> trades;
         Reject reject;
     }
 
     @Data
-    class Reject {
+    @AllArgsConstructor
+    class Reject implements OrderBookEvent {
         OrderRequest orderRequest;
         RejectReason rejectReason;
     }

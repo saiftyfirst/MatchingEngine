@@ -2,15 +2,19 @@ package matching.engine.core.orderbook;
 
 import matching.engine.core.api.OrderRequest;
 import matching.engine.core.common.order.IOrder;
+import matching.engine.core.common.order.OrderSide;
 import matching.engine.core.orderbook.events.OrderBookEvent;
+import matching.engine.core.orderbook.events.RejectReason;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class OrderBook implements IOrderBook {
 
     private final long instrument;
     private final NavigableMap<Double, OrderBookEntity> bids;
     private final NavigableMap<Double, OrderBookEntity> asks;
+    private final Set<Long> activeOrderSet;
 
     private final List<IOrderBookListener> eventListeners;
 
@@ -19,28 +23,67 @@ public class OrderBook implements IOrderBook {
         this.bids = new TreeMap<>(Collections.reverseOrder());
         this.asks = new TreeMap<>();
         this.eventListeners = new ArrayList<>();
+        this.activeOrderSet = new HashSet<>();
     }
 
     @Override
     public void newOrder(OrderRequest orderRequest) {
-        /* Possible Events:
-         * case LIMIT:
-         *  - reject due to bad instrument
-         *  - reject due to duplicate order id
-         *  - full fill and return one or more trades
-         *  - partial fill and return one or more trades
 
-         * case MARKET:
-         *  - reject due to bad instrument
-         *  - reject due to duplicate order id
-         *  - full fill and return one or more trades
+        if (orderRequest.getInstrument() != this.instrument) {
+            OrderBookEvent.Reject rejEvent = new OrderBookEvent.Reject(orderRequest, RejectReason.BAD_SYMBOL);
+            notify(rejEvent);
+            return;
+        }
 
-         * case FOK:
-         *  - reject due to bad instrument
-         *  - reject due to duplicate order id
-         *  - full fill and return one or more trades
-         *  - partial fill and return one or more trades, reject remaining size
-         * */
+        if (this.activeOrderSet.contains(orderRequest.getOrderId())) {
+            OrderBookEvent.Reject rejEvent = new OrderBookEvent.Reject(orderRequest, RejectReason.DUPLICATE_ORDER);
+            notify(rejEvent);
+            return;
+        }
+
+        switch (orderRequest.getOrderSpec()) {
+            case MARKET:
+                OrderBookEvent.Match matchEventMarket = fillMarketOrder(orderRequest);
+                if (matchEventMarket != null) {
+                    return;
+                }
+            case LIMIT:
+                OrderBookEvent.Match matchEventLimit = tryFillLimitOrder(orderRequest);
+                if (matchEventLimit != null) {
+                    return;
+                }
+            case FOK:
+                break;
+            default:
+                OrderBookEvent.Reject rejEvent = new OrderBookEvent.Reject(orderRequest, RejectReason.ORDER_TYPE_NOT_SUPPORTED);
+                notify(rejEvent);
+        }
+
+    }
+
+    private OrderBookEvent.Match fillMarketOrder(OrderRequest orderRequest) {
+        // TODO: deal with case where there are no qoutes on opposite side
+        double toFill = orderRequest.getSize();
+        NavigableMap<Double, OrderBookEntity> quotes = getOppositeQuotes(orderRequest.getSide());
+
+//        while (toFill != 0.0 && !quotes.isEmpty()) {
+//
+//        }
+
+
+        return null;
+    }
+
+    private OrderBookEvent.Match tryFillLimitOrder(OrderRequest orderRequest) {
+        return null;
+    }
+
+    private OrderBookEvent.MatchWithReject tryFillFOKOrder(OrderRequest orderRequest) {
+        return null;
+    }
+
+    private NavigableMap<Double, OrderBookEntity> getOppositeQuotes(OrderSide side) {
+        return side.equals(OrderSide.BID) ? this.asks : this.bids;
     }
 
     @Override

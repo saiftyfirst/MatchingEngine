@@ -5,7 +5,8 @@ public enum RejectReason {
     BAD_SYMBOL(0),
     DUPLICATE_ORDER(1),
     ORDER_NOT_FOUND(2),
-    PARTIAL_FOK(3);
+    ORDER_TYPE_NOT_SUPPORTED(3),
+    PARTIAL_FOK(4);
 
     private final int code;
 
@@ -26,6 +27,8 @@ public enum RejectReason {
             case 3:
                 return ORDER_NOT_FOUND;
             case 4:
+                return ORDER_TYPE_NOT_SUPPORTED;
+            case 5:
                 return PARTIAL_FOK;
             default:
                 throw new IllegalArgumentException("unknown RejectReason: " + code);

@@ -7,6 +7,8 @@ import lombok.Data;
 @Builder
 public class Order implements IOrder {
 
+    private long instrument;
+
     private double price;
 
     private double size;

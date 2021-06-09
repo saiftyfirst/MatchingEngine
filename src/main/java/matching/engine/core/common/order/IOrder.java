@@ -2,6 +2,8 @@ package matching.engine.core.common.order;
 
 public interface IOrder {
 
+    long getInstrument();
+
     double getPrice();
 
     double getSize();
@@ -13,6 +15,7 @@ public interface IOrder {
     long getUid();
 
     double getFilled();
+
 
     long getTimestamp();
 
