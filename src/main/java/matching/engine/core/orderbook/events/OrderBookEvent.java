@@ -14,6 +14,12 @@ public interface OrderBookEvent {
     }
 
     @Data
+    class MatchWithReject {
+        Collection<Trade> trades;
+        Reject reject;
+    }
+
+    @Data
     class Reject {
         OrderRequest orderRequest;
         RejectReason rejectReason;

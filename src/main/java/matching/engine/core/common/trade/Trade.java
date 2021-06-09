@@ -18,11 +18,15 @@ public class Trade {
 
     private final FillType buyerFill;
 
+    private final double buyerRemainingSize;
+
     private final long sellerUId;
 
     private final long sellerOrderId;
 
     private final FillType sellerFill;
+
+    private final double sellerRemainingSize;
 
     private final long timestamp;
 

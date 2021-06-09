@@ -2,21 +2,24 @@ package matching.engine.core.orderbook;
 
 import matching.engine.core.api.OrderRequest;
 import matching.engine.core.common.order.IOrder;
+import matching.engine.core.orderbook.events.OrderBookEvent;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.NavigableMap;
+import java.util.*;
 
 public class OrderBook implements IOrderBook {
 
     private final long instrument;
-    private NavigableMap<Double, OrderBookEntity> bids;
-    private NavigableMap<Double, OrderBookEntity> asks;
+    private final NavigableMap<Double, OrderBookEntity> bids;
+    private final NavigableMap<Double, OrderBookEntity> asks;
+
+    private final List<IOrderBookListener> eventListeners;
 
     public OrderBook(long instrument) {
         this.instrument = instrument;
+        this.bids = new TreeMap<>(Collections.reverseOrder());
+        this.asks = new TreeMap<>();
+        this.eventListeners = new ArrayList<>();
     }
-
 
     @Override
     public void newOrder(OrderRequest orderRequest) {
@@ -79,4 +82,25 @@ public class OrderBook implements IOrderBook {
         return null;
     }
 
+    @Override
+    public void addListener(IOrderBookListener orderBookListener) {
+        this.eventListeners.add(orderBookListener);
+    }
+
+    @Override
+    public void removeListener(IOrderBookListener orderBookListener) {
+        this.eventListeners.remove(orderBookListener);
+    }
+
+    @Override
+    public void removeAllListeners() {
+        this.eventListeners.clear();
+    }
+
+    private void notify(OrderBookEvent event) {
+        this.eventListeners.forEach(listener -> listener.process(event));
+    }
+
 }
+
+

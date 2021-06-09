@@ -21,4 +21,10 @@ public interface IOrderBook {
 
     Collection<IOrder> getUserOrders(long userId);
 
+    void addListener(IOrderBookListener orderBookListener);
+
+    void removeListener(IOrderBookListener orderBookListener);
+
+    void removeAllListeners();
+
 }
