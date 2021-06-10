@@ -62,7 +62,7 @@ public class OrderBook implements IOrderBook {
     }
 
     private OrderBookEvent.Match fillMarketOrder(OrderRequest orderRequest) {
-        // TODO: deal with case where there are no qoutes on opposite side
+        // TODO: deal with case where there are no quotes on opposite side
         double toFill = orderRequest.getSize();
         NavigableMap<Double, OrderBookEntity> quotes = getOppositeQuotes(orderRequest.getSide());
 
