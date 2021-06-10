@@ -4,9 +4,9 @@ public interface IOrder {
 
     long getInstrument();
 
-    double getPrice();
+    long getPrice();
 
-    double getSize();
+    long getSize();
 
     OrderSide getSide();
 
@@ -14,8 +14,7 @@ public interface IOrder {
 
     long getUid();
 
-    double getFilled();
-
+    long getRemainingSize();
 
     long getTimestamp();
 

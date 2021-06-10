@@ -4,16 +4,16 @@ import lombok.Builder;
 import lombok.Getter;
 import matching.engine.core.common.order.IOrder;
 import matching.engine.core.common.order.OrderSide;
-import matching.engine.core.common.order.OrderSpec;
+import matching.engine.core.common.order.OrderType;
 
 @Builder
 public class OrderRequest implements IOrder {
 
     @Getter
-    final private double price;
+    final private long price;
 
     @Getter
-    final private double size;
+    final private long size;
 
     @Getter
     final private OrderSide side;
@@ -25,7 +25,7 @@ public class OrderRequest implements IOrder {
     final private long orderId;
 
     @Getter
-    final private double filled;
+    final private long remainingSize;
 
     @Getter
     final private long timestamp;
@@ -34,6 +34,9 @@ public class OrderRequest implements IOrder {
     final private OrderRequestType orderRequestType;
 
     @Getter
-    final private OrderSpec orderSpec;
+    final private OrderType orderType;
+
+    @Getter
+    final private long instrument;
 
 }

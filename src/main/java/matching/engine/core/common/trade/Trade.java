@@ -8,9 +8,9 @@ import matching.engine.core.orderbook.events.FillType;
 @AllArgsConstructor
 public class Trade {
 
-    private final double price;
+    private final long price;
 
-    private final double size;
+    private final long size;
 
     private final long buyerUid;
 
@@ -18,7 +18,7 @@ public class Trade {
 
     private final FillType buyerFill;
 
-    private final double buyerRemainingSize;
+    private final long buyerRemainingSize;
 
     private final long sellerUId;
 
@@ -26,7 +26,7 @@ public class Trade {
 
     private final FillType sellerFill;
 
-    private final double sellerRemainingSize;
+    private final long sellerRemainingSize;
 
     private final long timestamp;
 

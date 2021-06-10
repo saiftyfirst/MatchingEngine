@@ -2,18 +2,19 @@ package matching.engine.core.orderbook;
 
 import matching.engine.core.api.OrderRequest;
 import matching.engine.core.common.order.IOrder;
+import matching.engine.core.common.order.Order;
 import matching.engine.core.common.order.OrderSide;
+import matching.engine.core.common.trade.Trade;
 import matching.engine.core.orderbook.events.OrderBookEvent;
 import matching.engine.core.orderbook.events.RejectReason;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 public class OrderBook implements IOrderBook {
 
     private final long instrument;
-    private final NavigableMap<Double, OrderBookEntity> bids;
-    private final NavigableMap<Double, OrderBookEntity> asks;
+    private final NavigableMap<Long, OrderBookEntity> bids;
+    private final NavigableMap<Long, OrderBookEntity> asks;
     private final Set<Long> activeOrderSet;
 
     private final List<IOrderBookListener> eventListeners;
@@ -41,7 +42,7 @@ public class OrderBook implements IOrderBook {
             return;
         }
 
-        switch (orderRequest.getOrderSpec()) {
+        switch (orderRequest.getOrderType()) {
             case MARKET:
                 OrderBookEvent.Match matchEventMarket = fillMarketOrder(orderRequest);
                 if (matchEventMarket != null) {
@@ -63,15 +64,33 @@ public class OrderBook implements IOrderBook {
 
     private OrderBookEvent.Match fillMarketOrder(OrderRequest orderRequest) {
         // TODO: deal with case where there are no quotes on opposite side
-        double toFill = orderRequest.getSize();
-        NavigableMap<Double, OrderBookEntity> quotes = getOppositeQuotes(orderRequest.getSide());
+        Order matchable = Order.orderFromReq(orderRequest);
+        NavigableMap<Long, OrderBookEntity> quotes = getOppositeQuotes(orderRequest.getSide());
 
-//        while (toFill != 0.0 && !quotes.isEmpty()) {
-//
-//        }
+        List<Long> emptyPriceLevels = new ArrayList<>();
 
+        List<Trade> trades;
+        List<Trade> allTrades = new ArrayList<>();
+        for (OrderBookEntity entity: quotes.values()) {
+            trades = entity.matchOrders(matchable);
 
-        return null;
+            if (trades.isEmpty()) {
+                break;
+            } else {
+                if (entity.getTotalSize() == 0L) {
+                    emptyPriceLevels.add(entity.getPrice());
+                }
+                allTrades.addAll(trades);
+            }
+        }
+
+        if (allTrades.isEmpty()) {
+            return null;
+        } else {
+            emptyPriceLevels.forEach(quotes::remove);
+            return new OrderBookEvent.Match(allTrades);
+        }
+
     }
 
     private OrderBookEvent.Match tryFillLimitOrder(OrderRequest orderRequest) {
@@ -82,7 +101,7 @@ public class OrderBook implements IOrderBook {
         return null;
     }
 
-    private NavigableMap<Double, OrderBookEntity> getOppositeQuotes(OrderSide side) {
+    private NavigableMap<Long, OrderBookEntity> getOppositeQuotes(OrderSide side) {
         return side.equals(OrderSide.BID) ? this.asks : this.bids;
     }
 

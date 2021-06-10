@@ -2,6 +2,7 @@ package matching.engine.core.common.order;
 
 import lombok.Builder;
 import lombok.Data;
+import matching.engine.core.api.OrderRequest;
 
 @Data
 @Builder
@@ -9,9 +10,9 @@ public class Order implements IOrder {
 
     private long instrument;
 
-    private double price;
+    private long price;
 
-    private double size;
+    private long size;
 
     private OrderSide side;
 
@@ -19,8 +20,25 @@ public class Order implements IOrder {
 
     private long orderId;
 
-    private double filled;
+    private long remainingSize;
 
     private long timestamp;
+
+    public void reduceSize(long reducible) {
+        this.remainingSize -= reducible;
+    }
+
+    public static Order orderFromReq(OrderRequest request) {
+        return new Order(
+                request.getInstrument(),
+                request.getPrice(),
+                request.getSize(),
+                request.getSide(),
+                request.getUid(),
+                request.getOrderId(),
+                request.getSize(),
+                request.getTimestamp()
+                );
+    }
 
 }
