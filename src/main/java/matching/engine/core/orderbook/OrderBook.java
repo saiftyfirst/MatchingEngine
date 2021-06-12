@@ -9,6 +9,7 @@ import matching.engine.core.orderbook.events.OrderBookEvent;
 import matching.engine.core.orderbook.events.RejectReason;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class OrderBook implements IOrderBook {
 
@@ -42,15 +43,24 @@ public class OrderBook implements IOrderBook {
             return;
         }
 
+        Order matchable = Order.orderFromReq(orderRequest);
         switch (orderRequest.getOrderType()) {
             case MARKET:
-                OrderBookEvent.Match matchEventMarket = fillMarketOrder(orderRequest);
+                OrderBookEvent.Match matchEventMarket = tryFill(matchable, true);
+                if (matchable.getRemainingSize() > 0) {
+                    placeOrderIntoBook(matchable);
+                }
                 if (matchEventMarket != null) {
+                    this.notify(matchEventMarket);
                     return;
                 }
             case LIMIT:
-                OrderBookEvent.Match matchEventLimit = tryFillLimitOrder(orderRequest);
+                OrderBookEvent.Match matchEventLimit = tryFill(matchable, false);
+                if (matchable.getRemainingSize() > 0) {
+                    placeOrderIntoBook(matchable);
+                }
                 if (matchEventLimit != null) {
+                    this.notify(matchEventLimit);
                     return;
                 }
             case FOK:
@@ -62,17 +72,16 @@ public class OrderBook implements IOrderBook {
 
     }
 
-    private OrderBookEvent.Match fillMarketOrder(OrderRequest orderRequest) {
+    private OrderBookEvent.Match tryFill(Order matchable, boolean isMarketOrder) {
         // TODO: deal with case where there are no quotes on opposite side
-        Order matchable = Order.orderFromReq(orderRequest);
-        NavigableMap<Long, OrderBookEntity> quotes = getOppositeQuotes(orderRequest.getSide());
+        NavigableMap<Long, OrderBookEntity> quotes = getOppositeSideQuotes(matchable.getSide());
 
         List<Long> emptyPriceLevels = new ArrayList<>();
 
         List<Trade> trades;
         List<Trade> allTrades = new ArrayList<>();
         for (OrderBookEntity entity: quotes.values()) {
-            trades = entity.matchOrders(matchable);
+            trades = entity.matchOrders(matchable, isMarketOrder);
 
             if (trades.isEmpty()) {
                 break;
@@ -93,16 +102,20 @@ public class OrderBook implements IOrderBook {
 
     }
 
-    private OrderBookEvent.Match tryFillLimitOrder(OrderRequest orderRequest) {
-        return null;
+    private NavigableMap<Long, OrderBookEntity> getSameSideQuotes(OrderSide side) {
+        return side.equals(OrderSide.BID) ? this.bids : this.asks;
     }
 
-    private OrderBookEvent.MatchWithReject tryFillFOKOrder(OrderRequest orderRequest) {
-        return null;
-    }
-
-    private NavigableMap<Long, OrderBookEntity> getOppositeQuotes(OrderSide side) {
+    private NavigableMap<Long, OrderBookEntity> getOppositeSideQuotes(OrderSide side) {
         return side.equals(OrderSide.BID) ? this.asks : this.bids;
+    }
+
+    private void placeOrderIntoBook(Order order) {
+        NavigableMap<Long, OrderBookEntity> quotes = getSameSideQuotes(order.getSide());
+        OrderBookEntity entity = quotes.getOrDefault(order.getPrice(), new OrderBookEntity(order.getPrice(), order.getSide()));
+        entity.addOrder(order);
+        quotes.put(order.getPrice(), entity);
+        this.activeOrderSet.add(order.getOrderId());
     }
 
     @Override
@@ -117,21 +130,41 @@ public class OrderBook implements IOrderBook {
 
     @Override
     public void cancelOrder(OrderRequest orderRequest) {
-        /*  Possible Events:
-         *  - reject due to bad instrument
-         *  - reject due unavailable orderId / already filled ?
-         *  - successful cancel
-         */
+        if (orderRequest.getInstrument() != this.instrument) {
+            OrderBookEvent.Reject rejEvent = new OrderBookEvent.Reject(orderRequest, RejectReason.BAD_SYMBOL);
+            notify(rejEvent);
+            return;
+        }
+
+        if (!this.activeOrderSet.contains(orderRequest.getOrderId())) {
+            OrderBookEvent.Reject rejEvent = new OrderBookEvent.Reject(orderRequest, RejectReason.ORDER_NOT_FOUND);
+            notify(rejEvent);
+            return;
+        }
+
+        NavigableMap<Long, OrderBookEntity> quotes = getSameSideQuotes(orderRequest.getSide());
+        OrderBookEntity entity = quotes.get(orderRequest.getPrice());
+        boolean tryCancel = entity.removeOrder(orderRequest.getOrderId());
+        if (tryCancel) {
+            this.activeOrderSet.remove(orderRequest.getOrderId());
+            OrderBookEvent.CancelSuccess successEvent = new OrderBookEvent.CancelSuccess(orderRequest);
+            notify(successEvent);
+        } else {
+            // some warning
+            OrderBookEvent.Reject rejEvent = new OrderBookEvent.Reject(orderRequest, RejectReason.ORDER_NOT_FOUND);
+            notify(rejEvent);
+        }
+
     }
 
     @Override
-    public Collection<IOrder> getBids() {
-        return Collections.emptyList();
+    public List<OrderBookEntity.Level> getBids() {
+        return this.bids.values().stream().map(OrderBookEntity::getLevelCopy).collect(Collectors.toList());
     }
 
     @Override
-    public Collection<IOrder> getAsks() {
-        return Collections.emptyList();
+    public List<OrderBookEntity.Level> getAsks() {
+        return this.asks.values().stream().map(OrderBookEntity::getLevelCopy).collect(Collectors.toList());
     }
 
     @Override

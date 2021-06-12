@@ -1,5 +1,6 @@
 package matching.engine.core.api;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import matching.engine.core.common.order.IOrder;
@@ -7,6 +8,7 @@ import matching.engine.core.common.order.OrderSide;
 import matching.engine.core.common.order.OrderType;
 
 @Builder
+@AllArgsConstructor
 public class OrderRequest implements IOrder {
 
     @Getter
@@ -19,7 +21,7 @@ public class OrderRequest implements IOrder {
     final private OrderSide side;
 
     @Getter
-    final private Long uid;
+    final private long userId;
 
     @Getter
     final private long orderId;

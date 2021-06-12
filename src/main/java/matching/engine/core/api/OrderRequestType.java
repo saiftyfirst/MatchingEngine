@@ -2,7 +2,7 @@ package matching.engine.core.api;
 
 public enum OrderRequestType {
 
-    NEW_ORDER(0), CANCEL_ORDER(1), AMEND_ORDER(2);
+    NEW_ORDER(0), CANCEL_ORDER(1), AMEND_PRICE(2), AMEND_SIZE(3);
 
     private final int code;
 
@@ -21,7 +21,9 @@ public enum OrderRequestType {
             case 1:
                 return CANCEL_ORDER;
             case 2:
-                return AMEND_ORDER;
+                return AMEND_PRICE;
+            case 3:
+                return AMEND_SIZE;
             default:
                 throw new IllegalArgumentException("unknown OrderRequest: " + code);
         }

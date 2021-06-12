@@ -4,6 +4,7 @@ import matching.engine.core.api.OrderRequest;
 import matching.engine.core.common.order.IOrder;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface IOrderBook {
 
@@ -13,9 +14,9 @@ public interface IOrderBook {
 
     void cancelOrder(OrderRequest orderRequest);
 
-    Collection<IOrder> getBids();
+    List<OrderBookEntity.Level> getBids();
 
-    Collection<IOrder> getAsks();
+    List<OrderBookEntity.Level> getAsks();
 
     long getInstrument();
 

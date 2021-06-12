@@ -31,5 +31,11 @@ public interface OrderBookEvent {
         RejectReason rejectReason;
     }
 
+    @Data
+    @AllArgsConstructor
+    class CancelSuccess implements OrderBookEvent {
+        OrderRequest orderRequest;
+    }
+
 
 }

@@ -12,7 +12,7 @@ public interface IOrder {
 
     long getOrderId();
 
-    long getUid();
+    long getUserId();
 
     long getRemainingSize();
 

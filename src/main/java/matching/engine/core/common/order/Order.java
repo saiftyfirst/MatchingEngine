@@ -16,7 +16,7 @@ public class Order implements IOrder {
 
     private OrderSide side;
 
-    private Long uid;
+    private long userId;
 
     private long orderId;
 
@@ -34,7 +34,7 @@ public class Order implements IOrder {
                 request.getPrice(),
                 request.getSize(),
                 request.getSide(),
-                request.getUid(),
+                request.getUserId(),
                 request.getOrderId(),
                 request.getSize(),
                 request.getTimestamp()

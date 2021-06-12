@@ -1,5 +1,6 @@
 package matching.engine.core.orderbook;
 
+import lombok.Data;
 import matching.engine.core.common.order.Order;
 import matching.engine.core.common.order.OrderSide;
 import matching.engine.core.common.trade.Trade;
@@ -9,35 +10,39 @@ import java.util.*;
 
 class OrderBookEntity {
 
-    private long price;
-    private long totalSize;
+    private Level level;
     private OrderSide side;
     private final LinkedHashMap<Long, Order> orderChain;
 
     OrderBookEntity(long price, OrderSide side) {
-        this.price = price;
-        this.totalSize = 0;
+        this.level = new Level(price, 0L);
+        this.side = side;
+        orderChain = new LinkedHashMap<>();
+    }
+
+    OrderBookEntity(long price, OrderSide side, long totalSize) {
+        this.level = new Level(price, totalSize);
         this.side = side;
         orderChain = new LinkedHashMap<>();
     }
 
     public long getPrice() {
-        return price;
+        return this.level.price;
     }
 
     long getTotalSize() {
-        return totalSize;
+        return this.level.totalSize;
     }
 
     void addOrder(Order order) {
-        this.totalSize += order.getSize();
+        this.level.totalSize += order.getSize();
         this.orderChain.put(order.getOrderId(), order);
     }
 
     boolean removeOrder(long orderId) {
         if (this.orderChain.containsKey(orderId)) {
             Order removable = this.orderChain.remove(orderId);
-            this.totalSize -= removable.getSize();
+            this.level.totalSize -= removable.getSize();
             return true;
         }
         return false;
@@ -46,20 +51,20 @@ class OrderBookEntity {
     boolean reduceSize(long orderId, long newSize) {
         if (this.orderChain.containsKey(orderId)) {
             Order reducible = this.orderChain.remove(orderId);
-            this.totalSize -= reducible.getSize();
+            this.level.totalSize -= reducible.getSize();
             reducible.setSize(newSize);
-            this.totalSize += newSize;
+            this.level.totalSize += newSize;
             return true;
         }
         return false;
     }
 
-    List<Trade> matchOrders(Order matchable) {
+    List<Trade> matchOrders(Order matchable, boolean isMarketOrder) {
 
         // TODO: ONLY WORKS FOR LIMIT ORDERS
 
         List<Trade> trades = new ArrayList<>();
-        if (this.side.equals(getOppositeSide())) {
+        if (matchable.getSide().equals(getOppositeSide())) {
 
             long matchablePrice = matchable.getPrice();
             long toFill = matchable.getRemainingSize();
@@ -68,7 +73,7 @@ class OrderBookEntity {
 
             long tradeSize;
             if (this.side.equals(OrderSide.ASK)) {
-                if (matchablePrice < this.price) {
+                if (!isMarketOrder && matchablePrice < this.level.price) {
                     return trades;
                 }
 
@@ -76,17 +81,19 @@ class OrderBookEntity {
                     if (toFill == 0) break;
 
                     tradeSize = Math.min(entry.getValue().getSize(), toFill);
-                    entry.getValue().reduceSize(tradeSize);
+                    entry.getValue().setRemainingSize(entry.getValue().getRemainingSize() - tradeSize);
+                    this.level.totalSize -= tradeSize;
                     toFill -= tradeSize;
+                    matchable.setRemainingSize(toFill);
 
                     trades.add(new Trade(
-                            price,
+                            this.level.price,
                             tradeSize,
-                            matchable.getUid(),
+                            matchable.getUserId(),
                             matchable.getOrderId(),
                             tradeSize == matchable.getSize() ? FillType.FULL : FillType.PARTIAL,
                             toFill,
-                            entry.getValue().getUid(),
+                            entry.getValue().getUserId(),
                             entry.getValue().getOrderId(),
                             entry.getValue().getRemainingSize() == 0 ? FillType.FULL : FillType.PARTIAL,
                             entry.getValue().getRemainingSize(),
@@ -102,7 +109,7 @@ class OrderBookEntity {
                 return trades;
 
             } else if (side.equals(OrderSide.BID)) {
-                if (matchablePrice > this.price) {
+                if (!isMarketOrder && matchablePrice > this.level.price) {
                     return Collections.emptyList();
                 }
 
@@ -110,17 +117,19 @@ class OrderBookEntity {
                     if (toFill == 0) break;
 
                     tradeSize = Math.min(entry.getValue().getSize(), toFill);
-                    entry.getValue().reduceSize(tradeSize);
+                    entry.getValue().setRemainingSize(entry.getValue().getRemainingSize() - tradeSize);
+                    this.level.totalSize -= tradeSize;
                     toFill -= tradeSize;
+                    matchable.setRemainingSize(toFill);
 
                     trades.add(new Trade(
-                            price,
+                            this.level.price,
                             tradeSize,
-                            entry.getValue().getUid(),
+                            entry.getValue().getUserId(),
                             entry.getValue().getOrderId(),
                             entry.getValue().getRemainingSize() == 0 ? FillType.FULL : FillType.PARTIAL,
                             entry.getValue().getRemainingSize(),
-                            matchable.getUid(),
+                            matchable.getUserId(),
                             matchable.getOrderId(),
                             tradeSize == matchable.getSize() ? FillType.FULL : FillType.PARTIAL,
                             toFill,
@@ -138,8 +147,33 @@ class OrderBookEntity {
         return trades;
     }
 
+    public Level getLevelCopy() {
+        return (Level) this.level.clone();
+    }
+
     private OrderSide getOppositeSide() {
         return this.side.equals(OrderSide.ASK) ? OrderSide.BID : OrderSide.ASK;
+    }
+
+    @Data
+    public static class Level {
+        private long price;
+        private long totalSize;
+
+        Level(long price, long totalSize) {
+            this.price = price;
+            this.totalSize = 0;
+        }
+
+        @Override
+        protected Object clone() {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException e) {
+                return new Level(this.price, this.totalSize);
+            }
+
+        }
     }
 
 }
