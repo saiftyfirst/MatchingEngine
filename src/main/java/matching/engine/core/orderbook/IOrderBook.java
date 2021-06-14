@@ -1,31 +1,28 @@
 package matching.engine.core.orderbook;
 
-import matching.engine.core.api.OrderRequest;
-import matching.engine.core.common.order.IOrder;
+import matching.engine.core.common.OrderRequest;
+import matching.engine.core.order.Order;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface IOrderBook {
 
-    void newOrder(OrderRequest orderRequest);
+    void marketOrder(OrderRequest request);
 
-    void amendOrder(OrderRequest orderRequest);
+    void newLimitOrder(OrderRequest request);
 
-    void cancelOrder(OrderRequest orderRequest);
+    void newFOKOrder(OrderRequest request);
 
-    List<OrderBookEntity.Level> getBids();
+    void amendOrderSize(OrderRequest request);
 
-    List<OrderBookEntity.Level> getAsks();
+    void amendOrderPrice(OrderRequest request);
 
-    long getInstrument();
+    void cancelOrder(OrderRequest request);
 
-    Collection<IOrder> getUserOrders(long userId);
+    List<Level> getBids();
 
-    void addListener(IOrderBookListener orderBookListener);
+    List<Level> getAsks();
 
-    void removeListener(IOrderBookListener orderBookListener);
-
-    void removeAllListeners();
+    List<Order> getUserOrders();
 
 }
